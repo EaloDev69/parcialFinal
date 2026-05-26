@@ -1,8 +1,8 @@
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.AI;
 
-public class MovimientoEnemigo : MonoBehaviour
+
+public class MovimientoSniper : MonoBehaviour
 {
     public Transform player;
     private NavMeshAgent agent;
@@ -11,6 +11,8 @@ public class MovimientoEnemigo : MonoBehaviour
     public Transform[] waypoints;
     public float waypointDistance = 1f;
     public int currentWaypoint= 0;
+
+    public Transform[] cobertura;
 
 
     public bool alertado = false;
@@ -27,11 +29,18 @@ public class MovimientoEnemigo : MonoBehaviour
         }
         distanciaParada = rangoPlayer * 0.75f;
     }
-
     void Update()
     {
         float distancia = Vector3.Distance(transform.position, player.position);
-        if (alertado || distancia < rangoPlayer )
+        Transform CoberCercano = ObtenerPuntoMasCercano();
+
+        if (CoberCercano != null && distancia < rangoPlayer)
+        {
+            agent.destination = CoberCercano.position;
+        }
+        else
+        {
+            if (alertado || distancia < rangoPlayer )
         {
             aPlayer();
         }
@@ -42,6 +51,7 @@ public class MovimientoEnemigo : MonoBehaviour
             {
                 GoToNextWaypoint();
             }
+        }
         }
     }
     void GoToNextWaypoint()
@@ -66,6 +76,27 @@ public class MovimientoEnemigo : MonoBehaviour
     {
         alertado = true;
         contadorAlerta = tiempoAlerta;
+    }
+    Transform ObtenerPuntoMasCercano()
+    {
+        Transform masCercano = null;
+        float distanciaMinima = Mathf.Infinity;
+
+        foreach (Transform punto in cobertura)
+        {
+            float distancia = Vector3.Distance(
+                player.position,
+                punto.position
+            );
+
+            if (distancia < distanciaMinima)
+            {
+                distanciaMinima = distancia;
+                masCercano = punto;
+            }
+        }
+
+        return masCercano;
     }
     void aPlayer()
     {
