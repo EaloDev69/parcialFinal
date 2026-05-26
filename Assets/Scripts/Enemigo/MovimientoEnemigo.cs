@@ -6,7 +6,7 @@ public class MovimientoEnemigo : MonoBehaviour
 {
     public Transform player;
     private NavMeshAgent agent;
-    public int rangoPlayer;
+    public float rangoPlayer;
 
     public Transform[] waypoints;
     public float waypointDistance = 1f;
@@ -16,6 +16,7 @@ public class MovimientoEnemigo : MonoBehaviour
     public bool alertado = false;
     public float tiempoAlerta = 5f;      // segundos que dura la alerta
     private float contadorAlerta = 0f;
+    private float distanciaParada;
     
     void Start()
     {
@@ -24,6 +25,7 @@ public class MovimientoEnemigo : MonoBehaviour
         {
             agent.SetDestination(waypoints[currentWaypoint].position);
         }
+        distanciaParada = rangoPlayer * 0.75f;
     }
 
     void Update()
@@ -32,7 +34,9 @@ public class MovimientoEnemigo : MonoBehaviour
         if (alertado || distancia < rangoPlayer )
         {
             //jugador cerca
-            agent.SetDestination(player.position);
+            Vector3 direccion = (player.position - transform.position).normalized;
+            Vector3 destino = player.position - direccion * distanciaParada;
+            agent.SetDestination(destino);
             if (alertado)
             {
                 contadorAlerta -= Time.deltaTime;
@@ -64,8 +68,7 @@ public class MovimientoEnemigo : MonoBehaviour
     {
         if (other.CompareTag("Bala"))
         {
-            alertado = true;
-            contadorAlerta = tiempoAlerta;
+           Alertar();
         }
     }
     public void Alertar()

@@ -15,7 +15,7 @@ public class DisparoEnemigo : MonoBehaviour
     void Start()
     {
         Cargador = MaxMag;
-        me = GetComponent<MovimientoEnemigo>();
+        me = GetComponentInParent<MovimientoEnemigo>();
     }
 
     // Update is called once per frame

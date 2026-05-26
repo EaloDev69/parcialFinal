@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class BalaComun : MonoBehaviour
 {
-    public static event Action<int, int, int> OnAmmoChanged;
+    public static event Action<int, int, int, bool> OnAmmoChanged;
 
     [Header("Disparo")]
     public Transform firePoint;
@@ -15,6 +15,9 @@ public class BalaComun : MonoBehaviour
     public int cargador;
     public int maxMag;
     public int cargadoresTotales;
+    public float recargaTime;
+    private float recargaContador;
+    public bool recargando = false;
 
     [Header("Cadencia")]
     public float fireRate;
@@ -31,15 +34,26 @@ public class BalaComun : MonoBehaviour
         camara = Camera.main;
         cargador = maxMag;
         NotificarHUD();
+        recargaContador = recargaTime;
     }
 
     void Update()
     {
-        if (Input.GetButton("Fire1") && cargador > 0 && Time.time >= nextFireTime)
+        if (Input.GetButton("Fire1") && cargador > 0 && Time.time >= nextFireTime && !recargando)
             Disparar();
 
         if (Input.GetKeyDown(KeyCode.R) && cargadoresTotales > 0)
             Recargar();
+            if (recargando)
+            {
+                recargaContador -= Time.deltaTime;
+                if (recargaContador <= 0)
+                {
+                    recargando = false;
+                    recargaContador = recargaTime;
+                    NotificarHUD();
+                }
+            }
     }
 
     void Disparar()
@@ -81,15 +95,16 @@ public class BalaComun : MonoBehaviour
     {
         if (cargador < maxMag)
         {
+            recargando = true;
             cargador = maxMag;
             cargadoresTotales--;
-            NotificarHUD();
+            NotificarHUD();   
         }
     }
 
     void NotificarHUD()
     {
-        OnAmmoChanged?.Invoke(cargador, maxMag, cargadoresTotales);
+        OnAmmoChanged?.Invoke(cargador, maxMag, cargadoresTotales, recargando);
     }
 
     IEnumerator MostrarTracer(Vector3 origen, Vector3 destino)

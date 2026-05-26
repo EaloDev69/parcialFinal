@@ -13,18 +13,24 @@ public class BalasHud : MonoBehaviour
     void OnEnable()
     {
         Prefab.OnAmmoChanged += ActualizarHUD;
-        BalaComun.OnAmmoChanged += ActualizarHUD;
+        BalaComun.OnAmmoChanged += ActualizarHUDRay;
         PlayerManager.OnVidaCambiada += ActualizarVida;
     }
 
     void OnDisable()
     {
         Prefab.OnAmmoChanged -= ActualizarHUD;
+        BalaComun.OnAmmoChanged -= ActualizarHUDRay;
         PlayerManager.OnVidaCambiada -= ActualizarVida;
     }
-    void ActualizarHUD(int balas, int maxBalas, int cargadores)
+    void ActualizarHUD(int balas, int maxBalas, int cargadores, bool recargando)
     {
-        TextoBalas.text  = $"{balas}/{maxBalas}";
+        TextoBalas.text  = recargando ? "Recargando..." : $"{balas}/{maxBalas}";
+        TextoCargadores.text =$"x {cargadores}";
+    }
+    void ActualizarHUDRay(int balas, int maxBalas, int cargadores, bool recargando)
+    {
+        TextoBalas.text = recargando ? "Recargando..." : $"{balas}/{maxBalas}";
         TextoCargadores.text =$"x {cargadores}";
     }
     void ActualizarVida(float vidaActual, float vidaMaxima)
