@@ -565,8 +565,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MovimientoEnemigo
   player: {fileID: 1845639913}
-  rangoPlayer: 25
-  waypoints:
+  patrolPoints:
   - {fileID: 1917784065}
   - {fileID: 1758921656}
   - {fileID: 916309071}
@@ -575,10 +574,11 @@ MonoBehaviour:
   - {fileID: 603958656}
   - {fileID: 1739435194}
   - {fileID: 2074619329}
-  waypointDistance: 1
-  currentWaypoint: 0
-  alertado: 0
-  tiempoAlerta: 7
+  patrolWaitTime: 2
+  stopAtDistance: 0.5
+  detectionRange: 5
+  viewAngle: 90
+  losePlayerTime: 3
 --- !u!195 &338375448
 NavMeshAgent:
   m_ObjectHideFlags: 0
@@ -903,6 +903,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e99ac9f1e4deb2d4a848dc432e797cdd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::DisparoEnemigo
+  arma: {fileID: 750730299}
   firePoint: {fileID: 252939585}
   bala: {fileID: 6511738392184612749, guid: cecb2b5ec18e28149b9f1686d00a36d2, type: 3}
   Jugador: {fileID: 1845639912}
@@ -910,6 +911,7 @@ MonoBehaviour:
   MaxMag: 25
   CargadoresTotales: 8
   fireRate: 0.3
+  anguloVertical: 60
 --- !u!65 &750730301
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -1045,7 +1047,7 @@ MonoBehaviour:
   cargadoresTotales: 4
   recargaTime: 1
   recargando: 0
-  fireRate: 0.1
+  fireRate: 0.2
   tracer: {fileID: 116301492}
   tracerDuration: 0.05
 --- !u!65 &861807660
@@ -1269,8 +1271,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0.25}
   m_AnchorMax: {x: 1, y: 0.75}
-  m_AnchoredPosition: {x: -5, y: 0}
-  m_SizeDelta: {x: -20, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &926062519
 GameObject:
@@ -1581,7 +1583,6 @@ GameObject:
   - component: {fileID: 1183671009}
   - component: {fileID: 1183671007}
   - component: {fileID: 1183671014}
-  - component: {fileID: 1183671015}
   m_Layer: 0
   m_Name: EnemyDistancia
   m_TagString: Enemy
@@ -1734,8 +1735,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MovimientoSniper
   player: {fileID: 1845639913}
-  rangoPlayer: 0
-  waypoints:
+  patrolPoints:
   - {fileID: 1917784065}
   - {fileID: 1758921656}
   - {fileID: 916309071}
@@ -1744,30 +1744,14 @@ MonoBehaviour:
   - {fileID: 603958656}
   - {fileID: 1739435194}
   - {fileID: 2074619329}
-  waypointDistance: 1
-  currentWaypoint: 0
-  cobertura: []
-  alertado: 0
-  tiempoAlerta: 5
---- !u!114 &1183671015
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1183671006}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b2a96266a682adc48b330a2ff79d86cf, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::MovimientoEnemigo
-  player: {fileID: 0}
-  rangoPlayer: 60
-  waypoints: []
-  waypointDistance: 1
-  currentWaypoint: 0
-  alertado: 0
-  tiempoAlerta: 5
+  coverPoints:
+  - {fileID: 1451621994}
+  - {fileID: 1566348218}
+  patrolWaitTime: 2
+  stopAtDistance: 0.5
+  detectionRange: 20
+  viewAngle: 90
+  losePlayerTime: 3
 --- !u!1 &1198221412
 GameObject:
   m_ObjectHideFlags: 0
@@ -1934,7 +1918,7 @@ MonoBehaviour:
   firePoint: {fileID: 197256502}
   bala: {fileID: 6511738392184612749, guid: 4f7e472de08d63f4da1acbdba53e6296, type: 3}
   Cargador: 0
-  MaxMag: 1
+  MaxMag: 2
   CargadoresTotales: 6
   recargaTime: 1
   recargando: 0
@@ -2168,7 +2152,7 @@ MonoBehaviour:
     m_PressedTrigger: Pressed
     m_SelectedTrigger: Selected
     m_DisabledTrigger: Disabled
-  m_Interactable: 1
+  m_Interactable: 0
   m_TargetGraphic: {fileID: 0}
   m_FillRect: {fileID: 2126956501}
   m_HandleRect: {fileID: 0}
@@ -2176,7 +2160,7 @@ MonoBehaviour:
   m_MinValue: 0
   m_MaxValue: 1
   m_WholeNumbers: 0
-  m_Value: 0
+  m_Value: 1
   m_OnValueChanged:
     m_PersistentCalls:
       m_Calls: []
@@ -2197,10 +2181,41 @@ RectTransform:
   m_Father: {fileID: 1841859509}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 80, y: 15}
-  m_SizeDelta: {x: 160, y: 20}
+  m_AnchorMax: {x: 1, y: 0}
+  m_AnchoredPosition: {x: -314.5, y: 15}
+  m_SizeDelta: {x: -640, y: 20}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!1 &1566348217
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1566348218}
+  m_Layer: 0
+  m_Name: Cober (2)
+  m_TagString: Untagged
+  m_Icon: {fileID: 7174288486110832750, guid: 0000000000000000d000000000000000, type: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1566348218
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1566348217}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: -63.3}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1725957395}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1725957394
 GameObject:
   m_ObjectHideFlags: 0
@@ -2231,6 +2246,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1451621994}
+  - {fileID: 1566348218}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1739435193
@@ -2421,6 +2437,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f01141d56f69e364f985e1c9e9007782, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::DisparoEnemigoSniper
+  arma: {fileID: 1769094795}
   firePoint: {fileID: 1116184547}
   bala: {fileID: 6511738392184612749, guid: 5555ecb70e4031c4e84ef6bd7b718398, type: 3}
   Jugador: {fileID: 1845639912}
@@ -2428,6 +2445,7 @@ MonoBehaviour:
   MaxMag: 8
   CargadoresTotales: 8
   fireRate: 2
+  anguloVertical: 60
 --- !u!1 &1841859505
 GameObject:
   m_ObjectHideFlags: 0
@@ -3252,6 +3270,6 @@ SceneRoots:
   - {fileID: 338375452}
   - {fileID: 1183671013}
   - {fileID: 1841859509}
-  - {fileID: 900695809}
   - {fileID: 1922759798}
   - {fileID: 1725957395}
+  - {fileID: 900695809}

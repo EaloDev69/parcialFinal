@@ -23,6 +23,10 @@ public class Prefab : MonoBehaviour
     [Header("Cadencia")]
     public float fireRate; // Segundos entre disparo y disparo
     private float nextFireTime; // Cuándo puede volver a disparar
+    void OnEnable()
+    {
+        NotificarHUD();
+    }
 
     void Start()
     {

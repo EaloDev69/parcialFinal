@@ -29,6 +29,11 @@ public class BalaComun : MonoBehaviour
 
     private Camera camara;
 
+    void OnEnable()
+    {
+        NotificarHUD();
+    }
+
     void Start()
     {
         camara = Camera.main;

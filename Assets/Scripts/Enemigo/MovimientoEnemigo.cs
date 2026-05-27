@@ -1,83 +1,165 @@
-using Unity.VisualScripting;
+using System.Collections;
 using UnityEngine;
 using UnityEngine.AI;
 
+public enum EnemyState
+{
+    Patrullaje,
+    Siguiendo,
+    Alertado
+}
+
 public class MovimientoEnemigo : MonoBehaviour
 {
-    public Transform player;
+    [Header("Referencias")]
+    [SerializeField] private Transform player;
+    [SerializeField] public Transform[] patrolPoints;
+    [Header("Settings")]
+    [SerializeField]private float patrolWaitTime = 2f;
+    [SerializeField]private float  stopAtDistance = 0.5f;
+    [SerializeField]public float detectionRange = 5f;
+    [SerializeField] private float viewAngle = 90f;
+    [SerializeField] private float losePlayerTime = 3f;
     private NavMeshAgent agent;
-    public float rangoPlayer;
+    private int puntoActual;
+    private bool esperando;
+    private EnemyState state = EnemyState.Patrullaje;
+    private float timeSinceLostPlayer;
 
-    public Transform[] waypoints;
-    public float waypointDistance = 1f;
-    public int currentWaypoint= 0;
 
-
-    public bool alertado = false;
-    public float tiempoAlerta = 5f;      // segundos que dura la alerta
-    private float contadorAlerta = 0f;
-    private float distanciaParada;
-    
-    void Start()
+    void Awake()
     {
         agent = GetComponent<NavMeshAgent>();
-        if (waypoints.Length > 0)
-        {
-            agent.SetDestination(waypoints[currentWaypoint].position);
-        }
-        distanciaParada = rangoPlayer * 0.75f;
-    }
 
+    }
+    void Start()
+    {
+        GoToNextPatrolPoint();
+    }
     void Update()
     {
-        float distancia = Vector3.Distance(transform.position, player.position);
-        if (alertado || distancia < rangoPlayer )
-        {
-            aPlayer();
-        }
-        else
-        {
-            //volver a patrullaje
-            if(!agent.pathPending && agent.remainingDistance <= waypointDistance)
-            {
-                GoToNextWaypoint();
-            }
-        }
-    }
-    void GoToNextWaypoint()
-    {
-        currentWaypoint++;//suma de contador
+        var distanceToPlayer = Vector3.Distance(player.position, transform.position);
 
-        if(currentWaypoint >= waypoints.Length)
+        switch (state)
         {
-            currentWaypoint = 0;//si supera longitud, vuelve a 0
-        }
+            case EnemyState.Patrullaje:
+                Patrol();
+                if (distanceToPlayer <= detectionRange && CanSeePlayer())
+                {
+                    state = EnemyState.Siguiendo;
+                }
 
-        agent.SetDestination(waypoints[currentWaypoint].position);
-    }
-    void OnTriggerEnter(Collider other)
-    {
-        if (other.CompareTag("Bala"))
-        {
-           Alertar();
+                break;
+
+            case EnemyState.Siguiendo:
+                FollowPlayer();
+                if (!CanSeePlayer())
+                {
+                    timeSinceLostPlayer  += Time.deltaTime;
+                    if(timeSinceLostPlayer >= losePlayerTime)
+                    {
+                        state = EnemyState.Patrullaje;
+                        GoToClosestPatrolPoint();
+                    }
+                }
+                else
+                {
+                    timeSinceLostPlayer   = 0f;
+                }
+                break;
+            case EnemyState.Alertado:
+                FollowPlayer(); // se mueve hacia donde escuchó algo
+                if (CanSeePlayer())
+                {
+                    state = EnemyState.Siguiendo; // si lo ve, pasa a perseguir
+                }
+                timeSinceLostPlayer += Time.deltaTime;
+                if (timeSinceLostPlayer >= losePlayerTime)
+                {
+                    state = EnemyState.Patrullaje;
+                    timeSinceLostPlayer = 0f;
+                    GoToClosestPatrolPoint();
+                }
+                break;
         }
+        
     }
     public void Alertar()
+{
+    if (state == EnemyState.Patrullaje) // no interrumpir si ya está persiguiendo
     {
-        alertado = true;
-        contadorAlerta = tiempoAlerta;
+        timeSinceLostPlayer = 0f;
+        state = EnemyState.Alertado;
     }
-    void aPlayer()
+}
+    void FollowPlayer()
     {
-        //jugador cerca
-            Vector3 direccion = (player.position - transform.position).normalized;
-            Vector3 destino = player.position - direccion * distanciaParada;
-            agent.SetDestination(destino);
-            if (alertado)
+        agent.SetDestination(player.position);
+    }
+    void Patrol()
+    {
+        if (esperando) return;
+        if(!agent.pathPending  && agent.remainingDistance <= stopAtDistance)
+        {
+            StartCoroutine(WaitAtPatrolPoint());
+        }
+    }
+    private IEnumerator WaitAtPatrolPoint()
+    {
+        esperando = true;
+        agent.isStopped =true;
+
+        yield return new WaitForSeconds(patrolWaitTime);
+
+        agent.isStopped = false;
+        GoToNextPatrolPoint();
+        esperando = false;
+    }
+    void GoToClosestPatrolPoint()
+    {
+        if (patrolPoints.Length == 0) return;
+        var closestIndex = 0;
+        var closestDistance = float.MaxValue;
+
+        for (int i = 0; i < patrolPoints.Length; i++)
+        {
+            var distance = Vector3.Distance(transform.position, patrolPoints[i].position);
+            if (distance < closestDistance)
             {
-                contadorAlerta -= Time.deltaTime;
-                if (contadorAlerta <= 0f)
-                    alertado = false;  // se acabó la alerta, vuelve a patrullar
+                closestDistance = distance;
+                closestIndex = i;
             }
+            
+        }
+        puntoActual = closestIndex;
+        agent.SetDestination(patrolPoints[puntoActual].position);
+    }
+    void GoToNextPatrolPoint()
+    {
+        if(patrolPoints.Length == 0) return;
+
+        agent.SetDestination(patrolPoints[puntoActual].position);
+        puntoActual = (puntoActual + 1) % patrolPoints.Length;
+    }
+    
+    bool CanSeePlayer()
+    {
+        return IsFacingPlayer() && HasClearPathToPlayer();
+    }
+
+    bool IsFacingPlayer()
+    {
+        var dirToPlayer = (player.position - transform.position).normalized;
+        var angle = Vector3.Angle(transform.forward, dirToPlayer);
+        return angle <= viewAngle / 2f;
+    }
+    bool HasClearPathToPlayer()
+    {
+        var  dirToPlayer = player.position - transform.position;
+        if(Physics.Raycast(transform.position, dirToPlayer.normalized, out RaycastHit hit, dirToPlayer.magnitude))
+        {
+            return hit.transform == player;
+        }
+        return true;
     }
 }

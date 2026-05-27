@@ -1,114 +1,209 @@
+using System.Collections;
 using UnityEngine;
 using UnityEngine.AI;
 
+public enum EnemySniperState
+{
+    Patrullaje,
+    Siguiendo,
+    Alertado,
+    Cobertura
+}
 
 public class MovimientoSniper : MonoBehaviour
 {
-    public Transform player;
+    [Header("Referencias")]
+    [SerializeField] private Transform player;
+    [SerializeField] public Transform[] patrolPoints;
+    [SerializeField] public Transform[] coverPoints;
+    [Header("Settings")]
+    [SerializeField]private float patrolWaitTime = 2f;
+    [SerializeField]private float  stopAtDistance = 0.5f;
+    [SerializeField]public float detectionRange = 5f;
+    [SerializeField] private float viewAngle = 90f;
+    [SerializeField] private float losePlayerTime = 3f;
     private NavMeshAgent agent;
-    public float rangoPlayer;
-
-    public Transform[] waypoints;
-    public float waypointDistance = 1f;
-    public int currentWaypoint= 0;
-
-    public Transform[] cobertura;
+    private int puntoActual;
+    private bool esperando;
+    private EnemySniperState state = EnemySniperState.Patrullaje;
+    private float timeSinceLostPlayer;
 
 
-    public bool alertado = false;
-    public float tiempoAlerta = 5f;      // segundos que dura la alerta
-    private float contadorAlerta = 0f;
-    private float distanciaParada;
-    
-    void Start()
+    void Awake()
     {
         agent = GetComponent<NavMeshAgent>();
-        if (waypoints.Length > 0)
-        {
-            agent.SetDestination(waypoints[currentWaypoint].position);
-        }
-        distanciaParada = rangoPlayer * 0.75f;
+
+    }
+    void Start()
+    {
+        GoToNextPatrolPoint();
     }
     void Update()
     {
-        float distancia = Vector3.Distance(transform.position, player.position);
-        Transform CoberCercano = ObtenerPuntoMasCercano();
+        var distanceToPlayer = Vector3.Distance(player.position, transform.position);
 
-        if (CoberCercano != null && distancia < rangoPlayer)
+        switch (state)
         {
-            agent.destination = CoberCercano.position;
-        }
-        else
-        {
-            if (alertado || distancia < rangoPlayer )
-        {
-            aPlayer();
-        }
-        else
-        {
-            //volver a patrullaje
-            if(!agent.pathPending && agent.remainingDistance <= waypointDistance)
-            {
-                GoToNextWaypoint();
-            }
-        }
-        }
-    }
-    void GoToNextWaypoint()
-    {
-        currentWaypoint++;//suma de contador
+            case EnemySniperState.Patrullaje:
+                Patrol();
+                if (distanceToPlayer <= detectionRange && CanSeePlayer())
+                {
+                    state = EnemySniperState.Siguiendo;
+                }
 
-        if(currentWaypoint >= waypoints.Length)
-        {
-            currentWaypoint = 0;//si supera longitud, vuelve a 0
-        }
+                break;
 
-        agent.SetDestination(waypoints[currentWaypoint].position);
-    }
-    void OnTriggerEnter(Collider other)
-    {
-        if (other.CompareTag("Bala"))
-        {
-           Alertar();
+            case EnemySniperState.Siguiendo:
+                FollowPlayer();
+                if (!CanSeePlayer())
+                {
+                    timeSinceLostPlayer  += Time.deltaTime;
+                    if(timeSinceLostPlayer >= losePlayerTime)
+                    {
+                        state = EnemySniperState.Patrullaje;
+                        GoToClosestPatrolPoint();
+                    }
+                }
+                else
+                {
+                    timeSinceLostPlayer   = 0f;
+                }
+                break;
+            case EnemySniperState.Alertado:
+                FollowPlayer(); // se mueve hacia donde escuchó algo
+                if (CanSeePlayer())
+                {
+                    state = EnemySniperState.Siguiendo; // si lo ve, pasa a perseguir
+                }
+                timeSinceLostPlayer += Time.deltaTime;
+                if (timeSinceLostPlayer >= losePlayerTime)
+                {
+                    state = EnemySniperState.Patrullaje;
+                    timeSinceLostPlayer = 0f;
+                    GoToClosestPatrolPoint();
+                }
+                break;
+            case EnemySniperState.Cobertura:
+                agent.isStopped = true;
+                if (distanceToPlayer < detectionRange * 0.5f)
+                {
+                    agent.isStopped = false;
+                    GoToClosestCoverPoint(); // ← cambiado
+                    state = EnemySniperState.Siguiendo;
+                }
+                if (!CanSeePlayer())
+                {
+                    timeSinceLostPlayer += Time.deltaTime;
+                    if (timeSinceLostPlayer >= losePlayerTime)
+                    {
+                        agent.isStopped = false;
+                        state = EnemySniperState.Patrullaje;
+                        GoToClosestPatrolPoint();
+                    }
+                }
+                else { timeSinceLostPlayer = 0f; }
+                break;
         }
+        
     }
     public void Alertar()
+{
+    if (state == EnemySniperState.Patrullaje)
     {
-        alertado = true;
-        contadorAlerta = tiempoAlerta;
+        timeSinceLostPlayer = 0f;
+        GoToClosestCoverPoint(); // ← agregar esto para que se mueva al cubrirse
+        state = EnemySniperState.Cobertura;
     }
-    Transform ObtenerPuntoMasCercano()
+}
+    void FollowPlayer()
     {
-        Transform masCercano = null;
-        float distanciaMinima = Mathf.Infinity;
-
-        foreach (Transform punto in cobertura)
+        agent.SetDestination(player.position);
+    }
+    void Patrol()
+    {
+        if (esperando) return;
+        if(!agent.pathPending  && agent.remainingDistance <= stopAtDistance)
         {
-            float distancia = Vector3.Distance(
-                player.position,
-                punto.position
-            );
+            StartCoroutine(WaitAtPatrolPoint());
+        }
+    }
+    private IEnumerator WaitAtPatrolPoint()
+    {
+        esperando = true;
+        agent.isStopped =true;
 
-            if (distancia < distanciaMinima)
+        yield return new WaitForSeconds(patrolWaitTime);
+
+        agent.isStopped = false;
+        GoToNextPatrolPoint();
+        esperando = false;
+    }
+    void GoToClosestCoverPoint()
+    {
+        if (coverPoints.Length == 0)
+        {
+            GoToClosestPatrolPoint(); // fallback si no hay puntos de cobertura
+            return;
+        }
+        var closestIndex = 0;
+        var closestDistance = float.MaxValue;
+
+        for (int i = 0; i < coverPoints.Length; i++)
+        {
+            var distance = Vector3.Distance(transform.position, coverPoints[i].position);
+            if (distance < closestDistance)
             {
-                distanciaMinima = distancia;
-                masCercano = punto;
+                closestDistance = distance;
+                closestIndex = i;
             }
         }
-
-        return masCercano;
+        agent.SetDestination(coverPoints[closestIndex].position);
     }
-    void aPlayer()
+    void GoToClosestPatrolPoint()
     {
-        //jugador cerca
-            Vector3 direccion = (player.position - transform.position).normalized;
-            Vector3 destino = player.position - direccion * distanciaParada;
-            agent.SetDestination(destino);
-            if (alertado)
+        if (patrolPoints.Length == 0) return;
+        var closestIndex = 0;
+        var closestDistance = float.MaxValue;
+
+        for (int i = 0; i < patrolPoints.Length; i++)
+        {
+            var distance = Vector3.Distance(transform.position, patrolPoints[i].position);
+            if (distance < closestDistance)
             {
-                contadorAlerta -= Time.deltaTime;
-                if (contadorAlerta <= 0f)
-                    alertado = false;  // se acabó la alerta, vuelve a patrullar
+                closestDistance = distance;
+                closestIndex = i;
             }
+            
+        }
+        puntoActual = closestIndex;
+        agent.SetDestination(patrolPoints[puntoActual].position);
+    }
+    void GoToNextPatrolPoint()
+    {
+        if(patrolPoints.Length == 0) return;
+
+        agent.SetDestination(patrolPoints[puntoActual].position);
+        puntoActual = (puntoActual + 1) % patrolPoints.Length;
+    }
+    
+    bool CanSeePlayer()
+    {
+        return IsFacingPlayer() && HasClearPathToPlayer();
+    }
+
+    bool IsFacingPlayer()
+    {
+        var dirToPlayer = (player.position - transform.position).normalized;
+        var angle = Vector3.Angle(transform.forward, dirToPlayer);
+        return angle <= viewAngle / 2f;
+    }
+    bool HasClearPathToPlayer()
+    {
+        var  dirToPlayer = player.position - transform.position;
+        if(Physics.Raycast(transform.position, dirToPlayer.normalized, out RaycastHit hit, dirToPlayer.magnitude))
+        {
+            return hit.transform == player;
+        }
+        return true;
     }
 }

@@ -108,7 +108,7 @@ SphereCollider:
     serializedVersion: 2
     m_Bits: 0
   m_LayerOverridePriority: 0
-  m_IsTrigger: 1
+  m_IsTrigger: 0
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
@@ -126,9 +126,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3b20f3f3a06977949bdbc22d7cb3156c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Bala
-  speed: 25
   dmg: 25
+  radioExplosion: 2
   rb: {fileID: 2116857509597195001}
+  speed: 15
+  tiempoActivacion: 0.2
+  active: 0
 --- !u!54 &2116857509597195001
 Rigidbody:
   m_ObjectHideFlags: 0

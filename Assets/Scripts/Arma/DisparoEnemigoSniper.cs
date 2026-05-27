@@ -2,6 +2,7 @@ using UnityEngine;
 
 public class DisparoEnemigoSniper : MonoBehaviour
 {
+    public Transform arma;
     public Transform firePoint; //Usen la camara por ahora
     public GameObject bala; //Prefab de bala
     public GameObject Jugador;
@@ -11,6 +12,7 @@ public class DisparoEnemigoSniper : MonoBehaviour
     public float fireRate;
     private MovimientoSniper mc;
     private float tiempoDisparo;
+    [SerializeField] private float anguloVertical = 60f;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
@@ -23,7 +25,7 @@ public class DisparoEnemigoSniper : MonoBehaviour
     {
         float distancia =Vector3.Distance(Jugador.transform.position, transform.position);
 
-        if (distancia < mc.rangoPlayer)
+        if (distancia < mc.detectionRange)
         {
             tiempoDisparo += Time.deltaTime;
 
@@ -50,5 +52,17 @@ public class DisparoEnemigoSniper : MonoBehaviour
         Cargador = MaxMag; //Recargamos
         CargadoresTotales--; //1 cargador menos
         }
+    }
+    void ApuntarJugador()
+    {
+        Vector3 direccion = Jugador.transform.position - arma.position;
+        Quaternion rotacionObjetivo = Quaternion.LookRotation(direccion);
+
+        Vector3 euler = rotacionObjetivo.eulerAngles;
+        euler.x = Mathf.Clamp(euler.x > 180 ? euler.x - 360 : euler.x, -anguloVertical, anguloVertical);
+        euler.y = 0f;
+        euler.z = 0f;
+
+        arma.localRotation = Quaternion.Euler(euler);
     }
 }
