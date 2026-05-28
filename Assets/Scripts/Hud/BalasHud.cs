@@ -15,6 +15,7 @@ public class BalasHud : MonoBehaviour
         Prefab.OnAmmoChanged += ActualizarHUD;
         BalaComun.OnAmmoChanged += ActualizarHUDRay;
         PlayerManager.OnVidaCambiada += ActualizarVida;
+        Escopeta.OnAmmoChanged += ActualizarHUD;
     }
 
     void OnDisable()
@@ -22,6 +23,7 @@ public class BalasHud : MonoBehaviour
         Prefab.OnAmmoChanged -= ActualizarHUD;
         BalaComun.OnAmmoChanged -= ActualizarHUDRay;
         PlayerManager.OnVidaCambiada -= ActualizarVida;
+        Escopeta.OnAmmoChanged -= ActualizarHUD;
     }
     void ActualizarHUD(int balas, int maxBalas, int cargadores, bool recargando)
     {
