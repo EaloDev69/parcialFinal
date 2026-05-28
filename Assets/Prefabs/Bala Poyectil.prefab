@@ -129,7 +129,7 @@ MonoBehaviour:
   dmg: 25
   radioExplosion: 2
   rb: {fileID: 2116857509597195001}
-  speed: 15
+  speed: 50
   tiempoActivacion: 0.2
   active: 0
 --- !u!54 &2116857509597195001

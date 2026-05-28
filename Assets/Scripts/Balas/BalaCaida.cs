@@ -41,10 +41,10 @@ public class BalaCaida : MonoBehaviour
             {
                 enemigo.RecibirDanio(dmg);
                 MovimientoEnemigo mov = col.GetComponent<MovimientoEnemigo>();
-                if(mov != null) mov.Alertar();
+                if(mov != null) mov.Alertar(transform.position);
 
                 MovimientoSniper sniper= col.GetComponent<MovimientoSniper>();
-                if(sniper != null) sniper.Alertar();
+                if(sniper != null) sniper.Alertar(transform.position);
             }
             PlayerManager ply = col.GetComponent<PlayerManager>();
             if(ply != null)

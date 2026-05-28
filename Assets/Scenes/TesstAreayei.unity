@@ -578,7 +578,7 @@ MonoBehaviour:
   stopAtDistance: 0.5
   detectionRange: 5
   viewAngle: 90
-  losePlayerTime: 3
+  losePlayerTime: 10
 --- !u!195 &338375448
 NavMeshAgent:
   m_ObjectHideFlags: 0
@@ -1421,6 +1421,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1028843269}
   - component: {fileID: 1028843270}
+  - component: {fileID: 1028843271}
   m_Layer: 5
   m_Name: HUDManager
   m_TagString: Untagged
@@ -1462,6 +1463,19 @@ MonoBehaviour:
   TextoBalas: {fileID: 1935557461}
   TextoCargadores: {fileID: 2109401475}
   barraVida: {fileID: 1476026047}
+--- !u!114 &1028843271
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1028843268}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 83b7480a490c81a44a83fae6b561e27f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Pausa
+  enPausa: 0
 --- !u!1 &1055159521
 GameObject:
   m_ObjectHideFlags: 0
@@ -1537,6 +1551,37 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1055159521}
   m_CullTransparentMesh: 1
+--- !u!1 &1080126671
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1080126672}
+  m_Layer: 0
+  m_Name: Alertador
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1080126672
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1080126671}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -49.73959, y: 5.32492, z: -8.53796}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1116184546
 GameObject:
   m_ObjectHideFlags: 0
@@ -1751,7 +1796,7 @@ MonoBehaviour:
   stopAtDistance: 0.5
   detectionRange: 20
   viewAngle: 90
-  losePlayerTime: 3
+  losePlayerTime: 20
 --- !u!1 &1198221412
 GameObject:
   m_ObjectHideFlags: 0
@@ -2759,7 +2804,7 @@ Transform:
   m_GameObject: {fileID: 1888616996}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0.05, z: 2.464}
+  m_LocalPosition: {x: 0, y: -0.025, z: 2.464}
   m_LocalScale: {x: 1.04, y: 0.1, z: 0.1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -3273,3 +3318,4 @@ SceneRoots:
   - {fileID: 1922759798}
   - {fileID: 1725957395}
   - {fileID: 900695809}
+  - {fileID: 1080126672}

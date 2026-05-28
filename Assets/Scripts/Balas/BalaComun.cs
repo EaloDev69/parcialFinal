@@ -84,7 +84,7 @@ public class BalaComun : MonoBehaviour
             // Alerta al enemigo
             MovimientoEnemigo movimiento = impacto.collider.GetComponent<MovimientoEnemigo>();
             if (movimiento != null)
-                movimiento.Alertar();
+                movimiento.Alertar(transform.position);
 
             Debug.Log("Impacto en: " + impacto.collider.name);
         }
